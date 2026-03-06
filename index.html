@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>¿Me perdonas? 🐱</title>
+<style>
+:root{
+  --card:#ffffffcc; --txt:#2a2a2a; --muted:#666;
+  --yes:#27c16f; --no:#ff4d4f;
+}
+html,body{
+  height:100%; margin:0; overflow:hidden;
+  font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  background:#0b0015;
+  display:flex; justify-content:center; align-items:center;
+  position:relative;
+}
+
+/* 🌌 Fondo aurora animado */
+#aurora{
+  position:fixed; inset:0; z-index:0;
+  background:radial-gradient(circle at 20% 30%, rgba(255,0,180,0.25), transparent 60%),
+             radial-gradient(circle at 80% 70%, rgba(0,200,255,0.25), transparent 60%),
+             radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1), transparent 60%);
+  background-size:200% 200%;
+  animation:aurora 15s ease-in-out infinite alternate;
+  filter:blur(15px);
+}
+@keyframes aurora{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 60%;}
+  100%{background-position:50% 0%;}
+}
+
+/* 💖 Corazones flotantes */
+#bubbles{
+  position:fixed;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+}
+.heart{
+  position:absolute;
+  bottom:-150px;
+  width:26px;
+  height:26px;
+  transform:rotate(-45deg);
+  border-radius:6px;
+  opacity:0.8;
+  animation:floatUp linear infinite;
+  filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));
+}
+.heart::before,
+.heart::after{
+  content:'';
+  position:absolute;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+}
+.heart::before{ top:-13px; left:0; }
+.heart::after{ left:13px; top:0; }
+@keyframes floatUp{
+  0%   { transform:translateY(0) rotate(-45deg) scale(0.9); opacity:0; }
+  20%  { opacity:1; }
+  100% { transform:translateY(-110vh) rotate(-45deg) scale(1.4); opacity:0; }
+}
+
+/* 🌈 Borde animado */
+.cardWrapper{
+  position:relative;
+  border-radius:28px; padding:3px;
+  background:linear-gradient(120deg,#ff8ad0,#ffd6a5,#a6c1ee,#c3a0ff,#ff8ad0);
+  background-size:400% 400%;
+  animation:borderAnim 6s ease infinite, glowPulse 3s ease-in-out infinite;
+  box-shadow:0 0 30px rgba(255,180,255,0.5);
+  z-index:2;
+}
+@keyframes borderAnim{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 25px rgba(255,180,255,.4);}
+  50%{box-shadow:0 0 55px rgba(255,220,255,.8);}
+}
+
+/* Tarjeta */
+.card{
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(10px);
+  border-radius:24px;
+  padding:26px 22px 22px;
+  text-align:center;
+  position:relative;
+  z-index:3;
+  width:min(440px,90vw);
+  box-shadow:0 4px 12px rgba(0,0,0,.25),
+              inset 0 4px 8px rgba(255,255,255,.4);
+  transition:transform .3s ease;
+}
+
+/* 💓 Latido */
+@keyframes heartbeat {
+  0%,100% { transform: scale(1); }
+  25% { transform: scale(1.03); }
+  50% { transform: scale(0.97); }
+  75% { transform: scale(1.05); }
+}
+.card.heartbeat{ animation:heartbeat 1.3s ease-in-out; }
+
+/* GIF */
+.gifBox{
+  width:100%; aspect-ratio:1.3/1; max-height:320px;
+  border-radius:18px; overflow:hidden; margin-bottom:18px;
+  background:#fff3; box-shadow: inset 0 0 0 1px #fff6, 0 10px 26px rgba(0,0,0,.12);
+}
+.gifBox img{width:100%;height:100%;object-fit:cover;display:block}
+h1{margin:0 0 6px;font-size:28px;line-height:1.2;color:var(--txt)}
+.sub{margin:0 0 18px;color:var(--muted);font-size:15px}
+
+/* Botones */
+.btnRow{display:flex;justify-content:center;align-items:center;gap:14px;position:relative;height:60px;}
+.btn{
+  min-width:124px;padding:14px 18px;border:none;cursor:pointer;
+  border-radius:18px;color:#fff;font-weight:700;letter-spacing:.2px;
+  box-shadow:0 10px 22px rgba(0,0,0,.18);
+  transition:transform .25s ease,opacity .3s ease,left .4s ease,top .4s ease;
+}
+.yes{background:var(--yes)}
+.no{background:var(--no)}
+.no.disabled{opacity:0;pointer-events:none}
+
+/* No dinámico */
+.noEscapa{
+  background:var(--no);
+  position:fixed;display:none;z-index:20;
+  border-radius:18px;color:#fff;font-weight:700;
+  padding:14px 18px;min-width:124px;text-align:center;
+  transition:left .4s ease, top .4s ease;
+}
+
+/* Explosión */
+.boom{animation:explode .6s ease-out forwards}
+@keyframes explode{
+  from{transform:scale(1);opacity:1}
+  to{transform:scale(2.2);opacity:0}
+}
+
+/* Shake */
+.shake{animation:shake 0.6s ease-in-out;filter:blur(1px) brightness(1.1);}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  10%,30%,50%,70%,90%{transform:translateX(-8px)}
+  20%,40%,60%,80%{transform:translateX(8px)}
+}
+
+/* Botón Sí centrado */
+.yes.centered{
+  position:absolute;left:50%;bottom:10px;
+  transform:translateX(-50%) scale(1);
+  animation:centerYes 1.2s ease-in-out forwards;
+  z-index:10;
+  box-shadow:0 0 20px rgba(39,193,111,.6),0 0 40px rgba(39,193,111,.3);
+}
+@keyframes centerYes{
+  0%{transform:translateX(-50%) scale(1)}
+  60%{transform:translateX(-50%) scale(1.3)}
+  100%{transform:translateX(-50%) scale(1.15)}
+}
+
+/* Final */
+.final{
+  position:fixed;inset:0;display:none;place-items:center;z-index:15;
+  background:radial-gradient(900px 900px at 50% 35%, #ffffffcc, #ffffff66 60%, #ffffff00 75%),
+             linear-gradient(135deg,#ffe2f2,#e4fff7);
+}
+.final.show{display:grid}
+.finalBox{width:min(520px,92vw);text-align:center}
+.finalBox h2{font-size:40px;margin:6px 0 10px;color:#ff3b7c;text-shadow:0 6px 22px #ff8fc2aa}
+.finalBox p{margin:0 0 16px;color:#444}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+.mini{position:fixed;bottom:8px;right:12px;font-size:12px;color:#fff9;z-index:60}
+
+@media (max-width:600px){
+  .card{width:90%;}
+  .btn{min-width:110px;padding:12px 14px}
+  h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<div id="aurora"></div>
+<div id="bubbles"></div>
+<canvas class="confetti"></canvas>
+
+<div class="cardWrapper">
+  <div class="card" id="card">
+    <div class="gifBox"><img id="cat" alt="cat gif"></div>
+    <h1 id="title">¿Me perdonas? 🥺</h1>
+    <p class="sub" id="sub">Prometo no hacerlo de nuevo 💗</p>
+    <div class="btnRow">
+      <button class="btn yes" id="btnYes">Sí</button>
+      <button class="btn no" id="btnNo">No</button>
+    </div>
+  </div>
+</div>
+
+<button class="btn noEscapa" id="btnNoEscapa">No</button>
+
+<div class="final" id="final">
+  <div class="finalBox">
+    <div class="gifBox" style="margin-inline:auto; max-width:460px;">
+      <img id="finalGif" alt="happy cats">
+    </div>
+    <h2>¡Sabía que aceptarías, tiiiiiiiii feliiiiiiiiiii! 🎉</h2>
+    <p>¡Eres la mejor, nunca lo olvides te amooooo mi pushu pushu, preciosa! 💞</p>
+  </div>
+</div>
+
+<div class="mini">ig: @santiiceballos</div>
+
+<script>
+/* ❤️ Corazones flotantes con colores variados */
+const bubbleContainer=document.getElementById("bubbles");
+const colors=["#ff6fb1","#ff9aff","#ff8ad0","#ffb6a9","#ffd86f","#9cfaff","#c79aff"];
+for(let i=0;i<25;i++){
+  const h=document.createElement("div");
+  h.classList.add("heart");
+  const size=20+Math.random()*40;
+  const color=colors[Math.floor(Math.random()*colors.length)];
+  h.style.width=h.style.height=size+"px";
+  h.style.left=Math.random()*100+"%";
+  h.style.animationDuration=(15+Math.random()*15)+"s";
+  h.style.animationDelay=(Math.random()*10)+"s";
+  h.style.background=color;
+  h.style.boxShadow=`0 0 15px ${color}80`;
+  h.style.opacity=Math.random()*0.8+0.3;
+  h.style.filter=`drop-shadow(0 0 10px ${color}aa)`;
+  bubbleContainer.appendChild(h);
+}
+
+/* --- GIFS ORIGINALES --- */
+const gifs=[
+ "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNDYxNHBycG45bGtscTdsbnI4amw5cnF2anpxYmdqcGRzdHJ0YWp1eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qUIm5wu6LAAog/giphy.gif",
+ "https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif",
+ "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXp0OWVpdXZ3MmI5cjJibjl6M3pubmYwcXUwMXV6emptcmkydXB6OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zx9NCxVYq6WuA/giphy.gif",
+ "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNG1xcWFwNm01dWdjYmd4cGVxYXU4cW0wb2N1ZTMzcXlyaGY5cTkxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/2AuNugaSdWBvG/giphy.gif",
+ "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3p3emthM3FiN2l5dGIyZHN1NW4yOHlxcWJ3dW5xemJrdXNramlheCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/W8krmZSDxPIfm/giphy.gif"
+];
+const steps=[
+ {title:"¿Me perdonas? 🥺",sub:"Prometo no hacerlo de nuevo 💗"},
+ {title:"Por favor, no volverá a pasar 💔",sub:"Di que sí… vamos 🥹"},
+ {title:"Podríamos estar así... piénsalo 😿",sub:"Un ‘sí’ y lo arreglamos ✨"},
+ {title:"No hay opción… tú me obligaste 😈",sub:"No vale la pena resistirse…"}
+];
+const FINAL_GIF=gifs[4];
+
+const cat=document.getElementById('cat');
+const title=document.getElementById('title');
+const sub=document.getElementById('sub');
+const btnYes=document.getElementById('btnYes');
+const btnNo=document.getElementById('btnNo');
+const btnNoEscapa=document.getElementById('btnNoEscapa');
+const card=document.getElementById('card');
+const final=document.getElementById('final');
+const finalGif=document.getElementById('finalGif');
+const cv=document.querySelector('.confetti');
+const ctx=cv.getContext('2d');
+
+window.addEventListener("load",()=>{updateStage(0);});
+
+let stage=0,noDynClicks=0,touchLock=false,conf=[],pinkBurst=[];
+function sizeCanvas(){cv.width=innerWidth;cv.height=innerHeight;}
+addEventListener('resize',sizeCanvas);sizeCanvas();
+
+btnNo.addEventListener('click',()=>{
+ if(stage<steps.length-1){
+  stage++;updateStage(stage);
+  if(stage===steps.length-1){
+    btnNo.classList.add('disabled');
+    const r=btnNo.getBoundingClientRect();
+    btnNoEscapa.style.left=r.left+"px";
+    btnNoEscapa.style.top=r.top+"px";
+    btnNoEscapa.style.display="inline-block";
+  }
+ }
+});
+
+function registerNoAttempt(e){
+  e.preventDefault();
+  if(touchLock)return;
+  touchLock=true;setTimeout(()=>touchLock=false,250);
+  noDynClicks++;
+  if(noDynClicks>=3){explodeNoButton();}
+  else{moveNoButton();}
+}
+btnNoEscapa.addEventListener('click',registerNoAttempt);
+btnNoEscapa.addEventListener('mouseenter',()=>{if(!/Mobi|Android/i.test(navigator.userAgent))registerNoAttempt(new Event('manual'));});
+
+btnYes.addEventListener('click',()=>{
+ btnNoEscapa.style.display="none";
+ finalGif.src=FINAL_GIF;
+ final.classList.add('show');
+ launchConfetti(160);
+ setTimeout(()=>conf=[],6000);
+});
+
+function updateStage(i){
+  if(i>=0&&i<gifs.length){cat.src=gifs[Math.min(i,gifs.length-2)];}
+  title.textContent=steps[i].title;
+  sub.textContent=steps[i].sub;
+  card.style.animation='heartbeat 1.3s ease-in-out';
+  setTimeout(()=>card.style.animation='',1300);
+}
+function moveNoButton(){
+ const m=16;const r=btnNoEscapa.getBoundingClientRect();
+ const w=innerWidth,h=innerHeight;
+ const x=Math.random()*(w-r.width-m*2)+m;
+ const y=Math.random()*(h-r.height-m*2)+m;
+ btnNoEscapa.style.left=x+"px";btnNoEscapa.style.top=y+"px";
+}
+function explodeNoButton(){
+ spawnPink(btnNoEscapa.getBoundingClientRect());
+ btnNoEscapa.classList.add('boom');
+ card.classList.add('shake');
+ btnYes.classList.add('centered');
+ setTimeout(()=>{btnNoEscapa.style.display="none";card.classList.remove('shake');},800);
+}
+
+function launchConfetti(n=120){
+ conf=Array.from({length:n},()=>({
+   x:Math.random()*cv.width,
+   y:-20-Math.random()*40,
+   r:6+Math.random()*8,
+   c:`hsl(${Math.floor(Math.random()*360)} 90% 60%)`,
+   vy:1+Math.random()*2,
+   ang:Math.random()*Math.PI*2,
+   vang:.02+Math.random()*.04
+ }));
+}
+function spawnPink(rect){
+ const cx=rect.left+rect.width/2;
+ const cy=rect.top+rect.height/2;
+ for(let i=0;i<28;i++){
+   const a=(i/28)*Math.PI*2;
+   const sp=2+Math.random()*2.5;
+   pinkBurst.push({
+     x:cx,y:cy,r:3+Math.random()*3,
+     c:`hsl(${330+Math.random()*20} 90% 60%)`,
+     vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:35+Math.random()*10
+   });
+ }
+}
+function loop(){
+ requestAnimationFrame(loop);
+ ctx.clearRect(0,0,cv.width,cv.height);
+ conf.forEach(p=>{
+   p.y+=p.vy;p.ang+=p.vang;
+   const wobble=Math.sin(p.ang)*6;
+   drawTri(p.x+wobble,p.y,p.r,p.c,p.ang*0.6);
+ });
+ conf=conf.filter(p=>p.y<cv.height+30);
+ pinkBurst.forEach(p=>{
+   p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.life--;
+   drawTri(p.x,p.y,p.r,p.c,0);
+ });
+ pinkBurst=pinkBurst.filter(p=>p.life>0);
+}
+function drawTri(x,y,r,color,rot){
+ ctx.save();ctx.translate(x,y);ctx.rotate(rot);
+ ctx.fillStyle=color;ctx.beginPath();
+ ctx.moveTo(0,-r);ctx.lineTo(r,r);ctx.lineTo(-r,r);
+ ctx.closePath();ctx.fill();ctx.restore();
+}
+loop();
+</script>
+</body>
+</html>
+
